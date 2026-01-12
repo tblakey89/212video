@@ -1,0 +1,17 @@
+{
+  "name": "212video-backend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}

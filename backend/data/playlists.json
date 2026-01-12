@@ -1,0 +1,24 @@
+{
+  "playlists": [
+    {
+      "id": "gotham-chess-guide",
+      "name": "Gotham Chess Guide",
+      "youtubePlaylistId": "PLBRObSmbZluRBQOO_6FzyxQUaFyzusSl0"
+    },
+    {
+      "id": "gotham-chess-openings",
+      "name": "Gotham Chess Openings",
+      "youtubePlaylistId": "PLBRObSmbZluTpMdP-rUL3bQ5GA8v4dMbT"
+    },
+    {
+      "id": "chess-tips",
+      "name": "Chess Tips",
+      "youtubePlaylistId": "PLBRObSmbZluSEeBkH17c72MaM4nFjqoi8"
+    },
+    {
+      "id": "pokemon-academy",
+      "name": "Pokemon academy",
+      "youtubePlaylistId": "PLb_5fF_O3FviC-jM32a72uQXfqWXTr-8i"
+    }
+  ]
+}

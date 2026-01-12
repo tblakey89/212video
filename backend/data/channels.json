@@ -1,0 +1,109 @@
+{
+  "channels": [
+    {
+      "id": "mark-rober",
+      "name": "Mark Rober",
+      "youtubeChannelId": "UCY1kMZp36IQSyNx_9h4mpCg",
+      "videos": [
+        {
+          "id": "xwO5E8O8EwI",
+          "title": "Squirrel Obstacle Course"
+        }
+      ]
+    },
+    {
+      "id": "veritasium",
+      "name": "Veritasium",
+      "youtubeChannelId": "UCHnyfMqiRRG1u-2MsSQLbXA",
+      "videos": [
+        {
+          "id": "MiUHjLxm3V0",
+          "title": "Veritasium video"
+        }
+      ]
+    },
+    {
+      "id": "adam-savage",
+      "name": "Adam Savage's Tested",
+      "youtubeChannelId": "UCiDJtJKMICpb9B1qf7qjEOA",
+      "videos": [
+        {
+          "id": "G5W5f6Tr_WA",
+          "title": "Adam Savage Builds a Cutting Room"
+        }
+      ]
+    },
+    {
+      "id": "scishow",
+      "name": "SciShow",
+      "youtubeChannelId": "UCZYTClx2T1of7BRZ86-8fow",
+      "videos": []
+    },
+    {
+      "id": "scishow-kids",
+      "name": "SciShow Kids",
+      "youtubeHandle": "SciShowKids",
+      "videos": []
+    },
+    {
+      "id": "13yoshi37",
+      "name": "13yoshi37",
+      "youtubeHandle": "13yoshi37",
+      "videos": []
+    },
+    {
+      "id": "wolfeyvgc",
+      "name": "WolfeyVGC",
+      "youtubeHandle": "wolfeyvgc",
+      "videos": []
+    },
+    {
+      "id": "minuteearth",
+      "name": "MinuteEarth",
+      "youtubeHandle": "minuteearth",
+      "videos": []
+    },
+    {
+      "id": "anna-cramling",
+      "name": "Anna Cramling",
+      "youtubeHandle": "AnnaCramling",
+      "videos": []
+    },
+    {
+      "id": "hanging-pawns",
+      "name": "Hanging Pawns",
+      "youtubeHandle": "HangingPawns",
+      "videos": []
+    },
+    {
+      "id": "chesskid",
+      "name": "ChessKid",
+      "youtubeHandle": "ChessKid",
+      "videos": []
+    },
+    {
+      "id": "gothamchess",
+      "name": "GothamChess",
+      "youtubeHandle": "GothamChess",
+      "videos": []
+    },
+    {
+      "id": "practical-engineering",
+      "name": "Practical Engineering",
+      "youtubeHandle": "PracticalEngineeringChannel",
+      "videos": []
+    },
+    {
+      "id": "horrible-histories",
+      "name": "Horrible Histories",
+      "youtubeHandle": "HorribleHistoriesOfficial",
+      "videos": []
+    },
+    {
+      "id": "armchair-historian",
+      "name": "The Armchair Historian",
+      "youtubeHandle": "TheArmchairHistorian",
+      "videos": []
+    }
+  ]
+}

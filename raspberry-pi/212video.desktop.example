@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=212video
+Comment=Curated YouTube viewer
+Exec=/home/pi/212video/scripts/launch-212video.sh
+Icon=/home/pi/212video/assets/icon.png
+Terminal=false
+Categories=Education;Video;
+StartupNotify=false
