@@ -11,6 +11,10 @@ export default function AppContent({
   remainingMinutes,
   statusMessage,
   showTimeUp,
+  showTooEarly,
+  showTooLate,
+  startHour,
+  endHour,
   isLoading,
   page,
   view,
@@ -50,6 +54,72 @@ export default function AppContent({
         >
           Time is up...
         </Typography>
+      </Box>
+    );
+  }
+
+  if (showTooEarly) {
+    return (
+      <Box
+        sx={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#0e0d0c",
+          pointerEvents: "auto",
+        }}
+      >
+        <Box sx={{ textAlign: "center" }}>
+          <Typography
+            variant="h2"
+            sx={{
+              color: "#f6f0e6",
+              fontWeight: 800,
+              fontSize: { xs: 40, md: 64 },
+            }}
+          >
+            Too early...
+          </Typography>
+          <Typography sx={{ color: "rgba(246,240,230,0.75)", mt: 1 }}>
+            On at {startHour}:00
+          </Typography>
+        </Box>
+      </Box>
+    );
+  }
+
+  if (showTooLate) {
+    return (
+      <Box
+        sx={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#0e0d0c",
+          pointerEvents: "auto",
+        }}
+      >
+        <Box sx={{ textAlign: "center" }}>
+          <Typography
+            variant="h2"
+            sx={{
+              color: "#f6f0e6",
+              fontWeight: 800,
+              fontSize: { xs: 40, md: 64 },
+            }}
+          >
+            Too late...
+          </Typography>
+          <Typography sx={{ color: "rgba(246,240,230,0.75)", mt: 1 }}>
+            Back at {startHour}:00
+          </Typography>
+        </Box>
       </Box>
     );
   }

@@ -31,6 +31,7 @@ export default function App() {
   const [isPlayerPaused, setIsPlayerPaused] = useState(false);
   const [isEndingSoon, setIsEndingSoon] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
+  const [currentHour, setCurrentHour] = useState(new Date().getHours());
 
   const playerRef = useRef(null);
   const playerInstanceRef = useRef(null);
@@ -41,6 +42,8 @@ export default function App() {
     channels,
     playlists,
     dailyLimitSeconds,
+    startHour,
+    endHour,
     isLoading,
     loadData,
   } = useAppData(authFetch);
@@ -76,6 +79,8 @@ export default function App() {
   });
 
   const remainingSeconds = Math.max(0, dailyLimitSeconds - watchedSeconds);
+  const isTooEarly = currentHour < startHour;
+  const isTooLate = currentHour >= endHour;
 
   const { sortedChannels, homeItems, inProgressItems } = useVideoCollections({
     channels,
@@ -89,6 +94,8 @@ export default function App() {
   });
   const disablePlayback = remainingSeconds <= 0;
   const showTimeUp = isTimeUp || remainingSeconds <= 0;
+  const showTooEarly = isTooEarly && !showTimeUp;
+  const showTooLate = isTooLate && !showTimeUp && !showTooEarly;
 
   useEffect(() => {
     watchedRef.current = watchedSeconds;
@@ -97,6 +104,22 @@ export default function App() {
   useEffect(() => {
     limitRef.current = dailyLimitSeconds;
   }, [dailyLimitSeconds]);
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setCurrentHour(new Date().getHours());
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    const refreshId = setInterval(() => {
+      refreshSummary();
+    }, 30000);
+
+    return () => clearInterval(refreshId);
+  }, [refreshSummary]);
 
   const handleEnd = useCallback(() => {
     stopReporting();
@@ -149,6 +172,14 @@ export default function App() {
   }, [stopReporting]);
 
   function startVideo(channel, video, originPage, originView) {
+    if (isTooEarly) {
+      setStatusMessage(`Too early. On at ${startHour}:00`);
+      return;
+    }
+    if (isTooLate) {
+      setStatusMessage(`Too late. Back at ${startHour}:00`);
+      return;
+    }
     if (remainingSeconds <= 0) {
       setStatusMessage("Daily limit reached. Come back tomorrow.");
       setIsTimeUp(true);
@@ -216,6 +247,10 @@ export default function App() {
         remainingMinutes={Math.ceil(remainingSeconds / 60)}
         statusMessage={statusMessage}
         showTimeUp={showTimeUp}
+        showTooEarly={showTooEarly}
+        showTooLate={showTooLate}
+        startHour={startHour}
+        endHour={endHour}
         isLoading={isLoading}
         page={page}
         view={view}

@@ -2,5 +2,7 @@
   "dailyLimitSeconds": 1800,
   "timezone": "Europe/London",
   "maxVideosPerChannel": 100,
-  "channelCacheMinutes": 720
+  "channelCacheMinutes": 720,
+  "startHour": 9,
+  "endHour": 19
 }
