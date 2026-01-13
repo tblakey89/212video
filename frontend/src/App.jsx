@@ -41,6 +41,7 @@ export default function App() {
     channels,
     playlists,
     dailyLimitSeconds,
+    isLoading,
     loadData,
   } = useAppData(authFetch);
 
@@ -215,6 +216,7 @@ export default function App() {
         remainingMinutes={Math.ceil(remainingSeconds / 60)}
         statusMessage={statusMessage}
         showTimeUp={showTimeUp}
+        isLoading={isLoading}
         page={page}
         view={view}
         onPageChange={(_, value) => handlePageChange(value)}

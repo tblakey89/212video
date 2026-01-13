@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Divider, Typography } from "@mui/material";
+import { Box, CircularProgress, Divider, Typography } from "@mui/material";
 import ChannelsView from "./ChannelsView.jsx";
 import HeroHeader from "./HeroHeader.jsx";
 import HomeView from "./HomeView.jsx";
@@ -11,6 +11,7 @@ export default function AppContent({
   remainingMinutes,
   statusMessage,
   showTimeUp,
+  isLoading,
   page,
   view,
   onPageChange,
@@ -53,12 +54,19 @@ export default function AppContent({
     );
   }
 
+  const showLoading = view !== "player" && isLoading;
+
   return (
     <>
       <HeroHeader remainingMinutes={remainingMinutes} statusMessage={statusMessage} />
       <Divider sx={{ my: 3, borderColor: "rgba(27,27,31,0.12)" }} />
       <NavigationTabs page={page} onChange={onPageChange} />
-      {view === "player" ? (
+      {showLoading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {!showLoading && view === "player" ? (
         <PlayerView
           activeVideo={activeVideo}
           onBack={onBackFromPlayer}
@@ -67,13 +75,13 @@ export default function AppContent({
           showPauseOverlay={showPauseOverlay}
           showEndOverlay={showEndOverlay}
         />
-      ) : page === "home" ? (
+      ) : !showLoading && page === "home" ? (
         <HomeView {...homeProps} />
-      ) : page === "playlists" ? (
+      ) : !showLoading && page === "playlists" ? (
         <PlaylistsView view={view} {...playlistsProps} />
-      ) : (
+      ) : !showLoading ? (
         <ChannelsView view={view} {...channelsProps} />
-      )}
+      ) : null}
     </>
   );
 }

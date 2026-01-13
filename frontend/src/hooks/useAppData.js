@@ -4,8 +4,10 @@ export function useAppData(authFetch) {
   const [channels, setChannels] = useState([]);
   const [playlists, setPlaylists] = useState([]);
   const [dailyLimitSeconds, setDailyLimitSeconds] = useState(1800);
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadData = useCallback(async () => {
+    setIsLoading(true);
     try {
       const [channelsRes, settingsRes, playlistsRes] = await Promise.all([
         authFetch("/api/channels"),
@@ -31,6 +33,8 @@ export function useAppData(authFetch) {
       }
     } catch (error) {
       // Ignore transient network errors.
+    } finally {
+      setIsLoading(false);
     }
   }, [authFetch]);
 
@@ -42,6 +46,7 @@ export function useAppData(authFetch) {
     channels,
     playlists,
     dailyLimitSeconds,
+    isLoading,
     loadData,
     setDailyLimitSeconds,
   };
