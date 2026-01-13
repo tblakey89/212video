@@ -23,7 +23,6 @@ export default function App() {
   const [statusMessage, setStatusMessage] = useState("");
   const [page, setPage] = useState("home");
   const [view, setView] = useState("list");
-  const [isPlayerPaused, setIsPlayerPaused] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [playerOrigin, setPlayerOrigin] = useState({ page: "home", view: "list" });

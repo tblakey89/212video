@@ -29,35 +29,28 @@ export default function PlayerView({
           )}
         </Box>
       )}
-      <Card sx={{ bgcolor: "#1e1d1b", borderRadius: 3 }}>
-        <CardContent>
-          {activeVideo ? (
-            <Box sx={{ position: "relative" }}>
-              <Box
-                ref={playerRef}
-                sx={{
-                  width: "100%",
-                  aspectRatio: "16 / 9",
-                  "& iframe": { width: "100%", height: "100%" },
-                }}
-              />
-              <Box
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-                sx={{
-                  position: "absolute",
-                  right: 0,
-                  bottom: 0,
-                  width: 160,
-                  height: 60,
-                  zIndex: 2,
-                  cursor: "default",
-                  backgroundColor: "transparent",
-                }}
-              />
-              {showCover && (
+      <Box sx={{ width: "100vw", ml: "calc(50% - 50vw)" }}>
+        <Card
+          sx={{
+            bgcolor: "#1e1d1b",
+            borderRadius: { xs: 0, md: 3 },
+            overflow: "hidden",
+            maxWidth: 1400,
+            mx: "auto",
+          }}
+        >
+          <CardContent sx={{ p: 0 }}>
+            {activeVideo ? (
+              <Box sx={{ position: "relative" }}>
+                <Box
+                  ref={playerRef}
+                  sx={{
+                    width: "min(100%, calc(90vh * 16 / 9))",
+                    height: "90vh",
+                    margin: "0 auto",
+                    "& iframe": { width: "100%", height: "100%" },
+                  }}
+                />
                 <Box
                   onClick={(event) => {
                     event.preventDefault();
@@ -65,29 +58,47 @@ export default function PlayerView({
                   }}
                   sx={{
                     position: "absolute",
-                    inset: 0,
-                    zIndex: 3,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "rgba(12,12,12,0.45)",
+                    right: 0,
+                    bottom: 0,
+                    width: 160,
+                    height: 60,
+                    zIndex: 2,
+                    cursor: "default",
+                    backgroundColor: "transparent",
                   }}
-                >
-                  {showPauseOverlay && (
-                    <Button variant="contained" onClick={onResume}>
-                      Resume
-                    </Button>
-                  )}
-                </Box>
-              )}
-            </Box>
-          ) : (
-            <Box sx={{ color: "#faf4e8", textAlign: "center", py: 6 }}>
-              <Typography>Select a video to start.</Typography>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+                />
+                {showCover && (
+                  <Box
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      zIndex: 3,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      backgroundColor: "rgba(12,12,12,0.45)",
+                    }}
+                  >
+                    {showPauseOverlay && (
+                      <Button variant="contained" onClick={onResume}>
+                        Resume
+                      </Button>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Box sx={{ color: "#faf4e8", textAlign: "center", py: 6 }}>
+                <Typography>Select a video to start.</Typography>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      </Box>
     </Box>
   );
 }
