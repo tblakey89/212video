@@ -23,14 +23,32 @@ export default function PlayerView({ activeVideo, onBack, playerRef }) {
       <Card sx={{ bgcolor: "#1e1d1b", borderRadius: 3 }}>
         <CardContent>
           {activeVideo ? (
-            <Box
-              ref={playerRef}
-              sx={{
-                width: "100%",
-                aspectRatio: "16 / 9",
-                "& iframe": { width: "100%", height: "100%" },
-              }}
-            />
+            <Box sx={{ position: "relative" }}>
+              <Box
+                ref={playerRef}
+                sx={{
+                  width: "100%",
+                  aspectRatio: "16 / 9",
+                  "& iframe": { width: "100%", height: "100%" },
+                }}
+              />
+              <Box
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+                sx={{
+                  position: "absolute",
+                  right: 0,
+                  bottom: 0,
+                  width: 160,
+                  height: 60,
+                  zIndex: 2,
+                  cursor: "default",
+                  backgroundColor: "transparent",
+                }}
+              />
+            </Box>
           ) : (
             <Box sx={{ color: "#faf4e8", textAlign: "center", py: 6 }}>
               <Typography>Select a video to start.</Typography>
