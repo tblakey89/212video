@@ -26,6 +26,8 @@ npm run dev:frontend
 - `backend/data/playlists.json`: curated playlists (by `youtubePlaylistId` or manual video lists).
 - `backend/data/settings.json`: daily limit, timezone, and max videos per channel/playlist.
 - `backend/.env`: set `YOUTUBE_API_KEY` to enable refreshes from YouTube.
+- `frontend/public/iframe_api.js`: cached copy of the YouTube IFrame API for networks that block `youtube.com`.
+- `frontend/public/www-widgetapi.js`: optional cached widget API (requires editing `iframe_api.js` to point here).
 
 When a YouTube API key is set, `/api/channels` and `/api/playlists` cache results in SQLite (`backend/data/watch.sqlite`) and refresh once per day.
 

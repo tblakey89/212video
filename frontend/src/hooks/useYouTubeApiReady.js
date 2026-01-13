@@ -16,7 +16,10 @@ export function useYouTubeApiReady() {
 
     const script = document.createElement("script");
     script.id = scriptId;
-    script.src = "https://www.youtube.com/iframe_api";
+    script.src = "/iframe_api.js";
+    script.onerror = () => {
+      console.error("Failed to load /iframe_api.js. Place a cached copy in frontend/public.");
+    };
     document.body.appendChild(script);
 
     window.onYouTubeIframeAPIReady = () => {
