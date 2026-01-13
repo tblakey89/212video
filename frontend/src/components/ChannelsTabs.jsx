@@ -6,7 +6,6 @@ export default function ChannelsTabs({ value, onChange, onRefresh }) {
   return (
     <>
       <Tabs value={value} onChange={onChange} sx={{ mb: 3 }}>
-        <Tab label="All videos" value="all" />
         <Tab label="Shorts" value="shorts" />
         <Tab label="Full videos" value="full" />
       </Tabs>

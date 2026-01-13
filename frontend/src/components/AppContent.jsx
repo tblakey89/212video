@@ -1,5 +1,5 @@
 import React from "react";
-import { Divider } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
 import ChannelsView from "./ChannelsView.jsx";
 import HeroHeader from "./HeroHeader.jsx";
 import HomeView from "./HomeView.jsx";
@@ -10,6 +10,7 @@ import PlaylistsView from "./PlaylistsView.jsx";
 export default function AppContent({
   remainingMinutes,
   statusMessage,
+  showTimeUp,
   page,
   view,
   onPageChange,
@@ -23,6 +24,35 @@ export default function AppContent({
   playlistsProps,
   channelsProps,
 }) {
+  if (showTimeUp) {
+    return (
+      <Box
+        sx={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#0e0d0c",
+          pointerEvents: "auto",
+        }}
+      >
+        <Typography
+          variant="h2"
+          sx={{
+            color: "#f6f0e6",
+            fontWeight: 800,
+            textAlign: "center",
+            fontSize: { xs: 40, md: 64 },
+          }}
+        >
+          Time is up...
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <>
       <HeroHeader remainingMinutes={remainingMinutes} statusMessage={statusMessage} />

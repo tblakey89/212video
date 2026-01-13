@@ -34,7 +34,7 @@ export function useChannelScroll({ view, selectedChannel, filter, pageSize }) {
     return () => {
       observer.disconnect();
     };
-  }, [view, selectedChannel, pageSize]);
+  }, [view, selectedChannel, filter, pageSize]);
 
   return { visibleCount, sentinelRef };
 }

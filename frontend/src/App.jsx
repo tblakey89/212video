@@ -26,10 +26,11 @@ export default function App() {
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [playerOrigin, setPlayerOrigin] = useState({ page: "home", view: "list" });
-  const [videoFilter, setVideoFilter] = useState("all");
+  const [videoFilter, setVideoFilter] = useState("full");
   const [homeFilter, setHomeFilter] = useState("full");
   const [isPlayerPaused, setIsPlayerPaused] = useState(false);
   const [isEndingSoon, setIsEndingSoon] = useState(false);
+  const [isTimeUp, setIsTimeUp] = useState(false);
 
   const playerRef = useRef(null);
   const playerInstanceRef = useRef(null);
@@ -66,7 +67,8 @@ export default function App() {
     watchedRef,
     playerInstanceRef,
     onLimitReached: () => {
-      setStatusMessage("Daily limit reached. Come back tomorrow.");
+      setStatusMessage("Time is up...");
+      setIsTimeUp(true);
       setActiveVideo(null);
       setActiveStartSeconds(0);
     },
@@ -85,6 +87,7 @@ export default function App() {
     pageSize: 20,
   });
   const disablePlayback = remainingSeconds <= 0;
+  const showTimeUp = isTimeUp || remainingSeconds <= 0;
 
   useEffect(() => {
     watchedRef.current = watchedSeconds;
@@ -101,6 +104,7 @@ export default function App() {
     setActiveStartSeconds(0);
     setIsPlayerPaused(false);
     setIsEndingSoon(false);
+    setIsTimeUp(false);
     setPage(playerOrigin.page);
     setView(playerOrigin.view);
   }, [playerOrigin, stopReporting]);
@@ -109,6 +113,7 @@ export default function App() {
     startReporting(activeVideo);
     setIsPlayerPaused(false);
     setIsEndingSoon(false);
+    setIsTimeUp(false);
   }, [startReporting, activeVideo]);
 
   const handlePause = useCallback(() => {
@@ -145,10 +150,12 @@ export default function App() {
   function startVideo(channel, video, originPage, originView) {
     if (remainingSeconds <= 0) {
       setStatusMessage("Daily limit reached. Come back tomorrow.");
+      setIsTimeUp(true);
       return;
     }
 
     setStatusMessage("");
+    setIsTimeUp(false);
     const totalWatched = videoProgress[video.id] || 0;
     const resumeAt = totalWatched >= 5 ? Math.floor(totalWatched) : 0;
     setActiveStartSeconds(resumeAt);
@@ -189,6 +196,7 @@ export default function App() {
       setActiveStartSeconds(0);
       setIsPlayerPaused(false);
       setIsEndingSoon(false);
+      setIsTimeUp(false);
     }
     setPage(nextPage);
     setView("list");
@@ -206,6 +214,7 @@ export default function App() {
       <AppContent
         remainingMinutes={Math.ceil(remainingSeconds / 60)}
         statusMessage={statusMessage}
+        showTimeUp={showTimeUp}
         page={page}
         view={view}
         onPageChange={(_, value) => handlePageChange(value)}
