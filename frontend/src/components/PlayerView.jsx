@@ -2,7 +2,16 @@ import React from "react";
 import { Box, Button, Card, CardContent, Typography } from "@mui/material";
 import { formatPublishDate } from "../utils/date.js";
 
-export default function PlayerView({ activeVideo, onBack, playerRef }) {
+export default function PlayerView({
+  activeVideo,
+  onBack,
+  playerRef,
+  onResume,
+  showPauseOverlay,
+  showEndOverlay,
+}) {
+  const showCover = showPauseOverlay || showEndOverlay;
+
   return (
     <Box sx={{ position: "relative", zIndex: 1 }}>
       <Button variant="outlined" sx={{ mb: 2 }} onClick={onBack}>
@@ -48,6 +57,29 @@ export default function PlayerView({ activeVideo, onBack, playerRef }) {
                   backgroundColor: "transparent",
                 }}
               />
+              {showCover && (
+                <Box
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    zIndex: 3,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "rgba(12,12,12,0.45)",
+                  }}
+                >
+                  {showPauseOverlay && (
+                    <Button variant="contained" onClick={onResume}>
+                      Resume
+                    </Button>
+                  )}
+                </Box>
+              )}
             </Box>
           ) : (
             <Box sx={{ color: "#faf4e8", textAlign: "center", py: 6 }}>

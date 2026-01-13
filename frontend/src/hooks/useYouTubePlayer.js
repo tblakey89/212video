@@ -9,8 +9,10 @@ export function useYouTubePlayer({
   onPlay,
   onPause,
   onEnd,
+  onNearEnd,
 }) {
   const lastVideoIdRef = useRef(null);
+  const endCheckRef = useRef(null);
 
   useEffect(() => {
     if (!apiReady || !activeVideo) {
@@ -31,6 +33,10 @@ export function useYouTubePlayer({
     if (playerInstanceRef.current) {
       playerInstanceRef.current.destroy();
       playerInstanceRef.current = null;
+    }
+    if (endCheckRef.current) {
+      clearInterval(endCheckRef.current);
+      endCheckRef.current = null;
     }
 
     playerInstanceRef.current = new window.YT.Player(containerRef.current, {
@@ -55,6 +61,21 @@ export function useYouTubePlayer({
         onStateChange: (event) => {
           if (event.data === window.YT.PlayerState.PLAYING) {
             onPlay();
+            if (!endCheckRef.current) {
+              endCheckRef.current = setInterval(() => {
+                const player = playerInstanceRef.current;
+                if (!player || typeof player.getDuration !== "function") {
+                  return;
+                }
+                const duration = Number(player.getDuration() || 0);
+                const current = Number(player.getCurrentTime() || 0);
+                if (duration > 0 && duration - current <= 2) {
+                  onNearEnd();
+                  clearInterval(endCheckRef.current);
+                  endCheckRef.current = null;
+                }
+              }, 500);
+            }
           }
 
           if (event.data === window.YT.PlayerState.PAUSED) {
@@ -63,9 +84,23 @@ export function useYouTubePlayer({
 
           if (event.data === window.YT.PlayerState.ENDED) {
             onEnd();
+            if (endCheckRef.current) {
+              clearInterval(endCheckRef.current);
+              endCheckRef.current = null;
+            }
           }
         },
       },
     });
-  }, [apiReady, activeVideo, startSeconds, containerRef, playerInstanceRef, onPlay, onPause, onEnd]);
+  }, [
+    apiReady,
+    activeVideo,
+    startSeconds,
+    containerRef,
+    playerInstanceRef,
+    onPlay,
+    onPause,
+    onEnd,
+    onNearEnd,
+  ]);
 }

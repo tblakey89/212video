@@ -23,11 +23,14 @@ export default function App() {
   const [statusMessage, setStatusMessage] = useState("");
   const [page, setPage] = useState("home");
   const [view, setView] = useState("list");
+  const [isPlayerPaused, setIsPlayerPaused] = useState(false);
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [playerOrigin, setPlayerOrigin] = useState({ page: "home", view: "list" });
   const [videoFilter, setVideoFilter] = useState("all");
   const [homeFilter, setHomeFilter] = useState("full");
+  const [isPlayerPaused, setIsPlayerPaused] = useState(false);
+  const [isEndingSoon, setIsEndingSoon] = useState(false);
 
   const playerRef = useRef(null);
   const playerInstanceRef = useRef(null);
@@ -97,17 +100,26 @@ export default function App() {
     setStatusMessage("Nice one! Pick another video.");
     setActiveVideo(null);
     setActiveStartSeconds(0);
+    setIsPlayerPaused(false);
+    setIsEndingSoon(false);
     setPage(playerOrigin.page);
     setView(playerOrigin.view);
   }, [playerOrigin, stopReporting]);
 
   const handlePlay = useCallback(() => {
     startReporting(activeVideo);
+    setIsPlayerPaused(false);
+    setIsEndingSoon(false);
   }, [startReporting, activeVideo]);
 
   const handlePause = useCallback(() => {
     stopReporting();
+    setIsPlayerPaused(true);
   }, [stopReporting]);
+
+  const handleNearEnd = useCallback(() => {
+    setIsEndingSoon(true);
+  }, []);
 
   useYouTubePlayer({
     apiReady,
@@ -118,6 +130,7 @@ export default function App() {
     onPlay: handlePlay,
     onPause: handlePause,
     onEnd: handleEnd,
+    onNearEnd: handleNearEnd,
   });
 
   useEffect(() => {
@@ -175,6 +188,8 @@ export default function App() {
       }
       setActiveVideo(null);
       setActiveStartSeconds(0);
+      setIsPlayerPaused(false);
+      setIsEndingSoon(false);
     }
     setPage(nextPage);
     setView("list");
@@ -198,6 +213,9 @@ export default function App() {
         activeVideo={activeVideo}
         playerRef={playerRef}
         onBackFromPlayer={handleBackFromPlayer}
+        onResumePlayer={() => playerInstanceRef.current?.playVideo()}
+        showPauseOverlay={isPlayerPaused}
+        showEndOverlay={isEndingSoon}
         homeProps={{
           inProgressItems,
           homeItems,

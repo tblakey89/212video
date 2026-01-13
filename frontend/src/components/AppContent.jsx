@@ -16,6 +16,9 @@ export default function AppContent({
   activeVideo,
   playerRef,
   onBackFromPlayer,
+  onResumePlayer,
+  showPauseOverlay,
+  showEndOverlay,
   homeProps,
   playlistsProps,
   channelsProps,
@@ -26,7 +29,14 @@ export default function AppContent({
       <Divider sx={{ my: 3, borderColor: "rgba(27,27,31,0.12)" }} />
       <NavigationTabs page={page} onChange={onPageChange} />
       {view === "player" ? (
-        <PlayerView activeVideo={activeVideo} onBack={onBackFromPlayer} playerRef={playerRef} />
+        <PlayerView
+          activeVideo={activeVideo}
+          onBack={onBackFromPlayer}
+          playerRef={playerRef}
+          onResume={onResumePlayer}
+          showPauseOverlay={showPauseOverlay}
+          showEndOverlay={showEndOverlay}
+        />
       ) : page === "home" ? (
         <HomeView {...homeProps} />
       ) : page === "playlists" ? (
