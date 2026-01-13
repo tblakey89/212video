@@ -45,7 +45,7 @@ export default function PlayerView({
                 <Box
                   ref={playerRef}
                   sx={{
-                    width: "min(100%, calc(90vh * 16 / 9))",
+                    width: "min(95vw, calc(90vh * 16 / 9))",
                     height: "90vh",
                     margin: "0 auto",
                     "& iframe": { width: "100%", height: "100%" },
