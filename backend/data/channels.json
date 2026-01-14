@@ -104,6 +104,18 @@
       "name": "The Armchair Historian",
       "youtubeHandle": "TheArmchairHistorian",
       "videos": []
+    },
+    {
+      "id": "smarter-every-day",
+      "name": "SmarterEveryDay",
+      "youtubeHandle": "smartereveryday",
+      "videos": []
+    },
+    {
+      "id": "scott-manley",
+      "name": "Scott Manley",
+      "youtubeHandle": "scottmanley",
+      "videos": []
     }
   ]
 }
