@@ -116,6 +116,18 @@
       "name": "Scott Manley",
       "youtubeHandle": "scottmanley",
       "videos": []
+    },
+    {
+      "id": "brick-experiment-channel",
+      "name": "Brick Experiment Channel",
+      "youtubeHandle": "BrickExperimentChannel",
+      "videos": []
+    },
+    {
+      "id": "lego-technic-mastery",
+      "name": "Lego Technic Mastery",
+      "youtubeHandle": "LegoTechnicMastery",
+      "videos": []
     }
   ]
 }
