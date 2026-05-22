@@ -58,10 +58,26 @@ export default function PlayerView({
                   }}
                   sx={{
                     position: "absolute",
+                    top: 0,
+                    left: 0,
                     right: 0,
-                    bottom: 0,
-                    width: 160,
-                    height: 60,
+                    height: 80,
+                    zIndex: 2,
+                    cursor: "default",
+                    backgroundColor: "transparent",
+                  }}
+                />
+                <Box
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                  sx={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 8,
+                    width: "60%",
+                    height: 50,
                     zIndex: 2,
                     cursor: "default",
                     backgroundColor: "transparent",
