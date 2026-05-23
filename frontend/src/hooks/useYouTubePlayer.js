@@ -69,7 +69,7 @@ export function useYouTubePlayer({
                 }
                 const duration = Number(player.getDuration() || 0);
                 const current = Number(player.getCurrentTime() || 0);
-                if (duration > 0 && duration - current <= 30) {
+                if (duration > 60 && duration - current <= 30) {
                   onNearEnd();
                   clearInterval(endCheckRef.current);
                   endCheckRef.current = null;
