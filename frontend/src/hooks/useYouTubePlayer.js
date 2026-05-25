@@ -54,6 +54,8 @@ export function useYouTubePlayer({
       },
       events: {
         onReady: (event) => {
+          event.target.unMute();
+          event.target.setVolume(100);
           if (startSeconds > 0) {
             event.target.seekTo(startSeconds, true);
           }
