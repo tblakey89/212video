@@ -114,6 +114,26 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Block browser shortcuts that can escape the kiosk (F1 help, reload,
+    // print, find, etc.). Browser-reserved combos like Ctrl+T/N/W can't be
+    // caught here, and key events inside the player iframe never reach us —
+    // OS-level key remapping is the real lockdown. See raspberry-pi/README.md.
+    const blockKeys = (event) => {
+      const isFunctionKey = /^F\d+$/.test(event.key);
+      const key = event.key.toLowerCase();
+      const isComboEscape =
+        (event.ctrlKey || event.metaKey) &&
+        ["r", "l", "p", "s", "o", "j", "h", "d", "f", "g", "u", "k", "e"].includes(key);
+      if (isFunctionKey || isComboEscape) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+    window.addEventListener("keydown", blockKeys, true);
+    return () => window.removeEventListener("keydown", blockKeys, true);
+  }, []);
+
+  useEffect(() => {
     const refreshId = setInterval(() => {
       refreshSummary();
     }, 30000);

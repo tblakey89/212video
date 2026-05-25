@@ -30,9 +30,58 @@ npm --workspace frontend run dev -- --host 0.0.0.0 --port "${FRONTEND_PORT}" \
 
 sleep 3
 
-# Launch Chromium in app mode
-chromium-browser --app="${URL}" --noerrdialogs --disable-infobars --start-fullscreen
+# Launch Chromium locked down in kiosk mode.
+# --kiosk hides all browser UI; the extra flags close common escape hatches
+# (new tabs/windows, crash/restore bubbles, pinch-zoom, translate popups).
+chromium-browser \
+  --kiosk \
+  --noerrdialogs \
+  --disable-infobars \
+  --disable-pinch \
+  --disable-features=TranslateUI \
+  --disable-session-crashed-bubble \
+  --overscroll-history-navigation=0 \
+  --autoplay-policy=no-user-gesture-required \
+  "${URL}"
 ```
+
+## Disabling keyboard shortcuts (the F1/F-key escape)
+
+`--kiosk` removes the browser chrome, but Chromium still honours keyboard
+shortcuts like **F1** (opens Help in a new window — a full-web escape),
+F3, Ctrl+T/N/L, etc. There is no Chromium flag to disable these, so block
+them at the OS level with a tiny key remapper that runs alongside the kiosk.
+
+Install `xbindkeys` (X11 desktop, the default Raspberry Pi OS):
+
+```bash
+sudo apt-get install -y xbindkeys
+```
+
+Create `/home/pi/.xbindkeysrc` that swallows the dangerous keys by binding
+them to a no-op:
+
+```
+# F1 help, F3 search, plus other function keys -> do nothing
+"true"
+  F1
+"true"
+  F3
+"true"
+  F11
+"true"
+  F12
+```
+
+Then start it from the launch script *before* Chromium:
+
+```bash
+pkill xbindkeys 2>/dev/null || true
+xbindkeys
+```
+
+For a Wayland-based image (`labwc`/`wayfire`) the equivalent is to remove
+or override those keybinds in the compositor config instead.
 
 Make it executable:
 
