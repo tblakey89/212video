@@ -45,11 +45,22 @@ async function getUploadsPlaylistIdForHandle(handle, apiKey) {
   };
 }
 
-async function fetchPlaylistVideos(playlistId, apiKey, maxVideos) {
+async function fetchPlaylistVideos(playlistId, apiKey, maxVideos, opts = {}) {
+  // `exclude` lets the uploads scan skip Shorts so we keep collecting until we
+  // have `maxVideos` *long* videos rather than `maxVideos` total uploads.
+  // `maxPages` caps how deep we scan so a Shorts-heavy channel can't run away.
+  // `knownIds` enables an incremental top-up: the playlist is newest-first, so
+  // once we reach a video we already have, everything below is older and stored
+  // — stop scanning. (Empty/absent knownIds = a full backfill.)
+  const exclude = opts.exclude || null;
+  const maxPages = opts.maxPages || Infinity;
+  const knownIds = opts.knownIds || null;
   const videos = [];
   let pageToken = "";
+  let pages = 0;
+  let reachedKnown = false;
 
-  while (videos.length < maxVideos) {
+  while (videos.length < maxVideos && pages < maxPages && !reachedKnown) {
     const url = new URL("https://www.googleapis.com/youtube/v3/playlistItems");
     url.searchParams.set("part", "snippet");
     url.searchParams.set("playlistId", playlistId);
@@ -61,6 +72,7 @@ async function fetchPlaylistVideos(playlistId, apiKey, maxVideos) {
 
     const data = await fetchJson(url.toString());
     const items = data.items || [];
+    pages += 1;
 
     for (const item of items) {
       const snippet = item.snippet;
@@ -73,13 +85,20 @@ async function fetchPlaylistVideos(playlistId, apiKey, maxVideos) {
       if (!videoId || title === "Private video" || title === "Deleted video") {
         continue;
       }
+      if (knownIds && knownIds.has(videoId)) {
+        reachedKnown = true;
+        break;
+      }
+      if (exclude && exclude.has(videoId)) {
+        continue;
+      }
       videos.push({ id: videoId, title, publishedAt });
       if (videos.length >= maxVideos) {
         break;
       }
     }
 
-    if (!data.nextPageToken) {
+    if (reachedKnown || !data.nextPageToken) {
       break;
     }
     pageToken = data.nextPageToken;
@@ -137,19 +156,41 @@ function getShortsPlaylistId(channelId) {
   return `UUSH${channelId.slice(2)}`;
 }
 
-async function fetchChannelVideos({ channelId, handle }, apiKey, maxVideos) {
+// Scan as deep as 25 pages (1250 uploads) looking for long videos. Plenty for
+// Shorts-heavy channels, bounded so a channel with thousands of uploads can't
+// run the quota away.
+const MAX_UPLOAD_PAGES = 25;
+const SHORT_MAX_SECONDS = 60;
+
+async function buildChannelResult(uploadsPlaylistId, channelId, apiKey, maxVideos, knownIds) {
+  // Shorts first, so the uploads scan can skip them and keep collecting long
+  // videos until it actually reaches `maxVideos`.
+  const shorts = await fetchShortsForChannel(channelId, apiKey, maxVideos, {
+    maxPages: MAX_UPLOAD_PAGES,
+    knownIds,
+  });
+  const shortsSet = new Set(shorts.map((video) => video.id));
+  const uploads = await fetchPlaylistVideos(uploadsPlaylistId, apiKey, maxVideos, {
+    exclude: shortsSet,
+    maxPages: MAX_UPLOAD_PAGES,
+    knownIds,
+  });
+  // Secondary guard: a Short older than the recent Shorts window could slip
+  // through, so drop anything <= 60s from the long-video list.
+  const videos = uploads.filter(
+    (video) => !video.durationSeconds || video.durationSeconds > SHORT_MAX_SECONDS
+  );
+  return { videos, shorts, channelId };
+}
+
+async function fetchChannelVideos({ channelId, handle }, apiKey, maxVideos, opts = {}) {
+  const knownIds = opts.knownIds || null;
   if (channelId) {
     const uploadsPlaylistId = await getUploadsPlaylistId(channelId, apiKey);
     if (!uploadsPlaylistId) {
       return { videos: [], shorts: [], channelId };
     }
-    const [videos, shorts] = await Promise.all([
-      fetchPlaylistVideos(uploadsPlaylistId, apiKey, maxVideos),
-      fetchShortsForChannel(channelId, apiKey, maxVideos),
-    ]);
-    const shortsSet = new Set(shorts.map((video) => video.id));
-    const filteredVideos = videos.filter((video) => !shortsSet.has(video.id));
-    return { videos: filteredVideos, shorts, channelId };
+    return buildChannelResult(uploadsPlaylistId, channelId, apiKey, maxVideos, knownIds);
   }
 
   if (handle) {
@@ -160,25 +201,19 @@ async function fetchChannelVideos({ channelId, handle }, apiKey, maxVideos) {
     if (!uploadsPlaylistId) {
       return { videos: [], shorts: [], channelId: resolvedId || null };
     }
-    const [videos, shorts] = await Promise.all([
-      fetchPlaylistVideos(uploadsPlaylistId, apiKey, maxVideos),
-      fetchShortsForChannel(resolvedId, apiKey, maxVideos),
-    ]);
-    const shortsSet = new Set(shorts.map((video) => video.id));
-    const filteredVideos = videos.filter((video) => !shortsSet.has(video.id));
-    return { videos: filteredVideos, shorts, channelId: resolvedId || null };
+    return buildChannelResult(uploadsPlaylistId, resolvedId, apiKey, maxVideos, knownIds);
   }
 
   return { videos: [], shorts: [], channelId: null };
 }
 
-async function fetchShortsForChannel(channelId, apiKey, maxVideos) {
+async function fetchShortsForChannel(channelId, apiKey, maxVideos, opts = {}) {
   const shortsPlaylistId = getShortsPlaylistId(channelId);
   if (!shortsPlaylistId) {
     return [];
   }
   try {
-    return await fetchPlaylistVideos(shortsPlaylistId, apiKey, maxVideos);
+    return await fetchPlaylistVideos(shortsPlaylistId, apiKey, maxVideos, opts);
   } catch (error) {
     const message = error && error.message ? error.message : "";
     if (message.includes("playlistNotFound") || message.includes("YouTube API error 404")) {

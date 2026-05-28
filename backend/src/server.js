@@ -51,11 +51,75 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true });
 });
 
+const refreshingChannels = new Set();
+
+async function refreshChannel(channel, channelKey, maxVideos, { incremental = false } = {}) {
+  try {
+    // Incremental top-up: tell the fetch which videos we already have so it can
+    // stop once it reaches them. A full backfill (or manual refresh) passes no
+    // known set and re-scans the whole window.
+    const knownIds = incremental
+      ? new Set(listVideosByChannel(channelKey).map((video) => video.id))
+      : null;
+    const { videos, shorts, channelId } = await fetchChannelVideos(
+      { channelId: channel.youtubeChannelId, handle: channel.youtubeHandle },
+      apiKey,
+      maxVideos,
+      { knownIds }
+    );
+    const updatedAt = new Date().toISOString();
+    videos.forEach((video) =>
+      upsertVideo({
+        videoId: video.id,
+        channelKey,
+        channelId: channelId || channel.youtubeChannelId || null,
+        title: video.title || null,
+        publishedAt: video.publishedAt || null,
+        durationSeconds: video.durationSeconds || null,
+        isShort: 0,
+        updatedAt,
+      })
+    );
+    shorts.forEach((video) =>
+      upsertVideo({
+        videoId: video.id,
+        channelKey,
+        channelId: channelId || channel.youtubeChannelId || null,
+        title: video.title || null,
+        publishedAt: video.publishedAt || null,
+        durationSeconds: video.durationSeconds || null,
+        isShort: 1,
+        updatedAt,
+      })
+    );
+  } catch (error) {
+    const label = channel.youtubeHandle || channel.youtubeChannelId || channel.name;
+    console.error(`YouTube fetch failed for ${label}: ${error.message}`);
+  } finally {
+    // Always stamp the refresh time — even on failure — so a broken/empty
+    // channel (e.g. a bad handle) isn't re-attempted on every request; it
+    // retries on the next daily cycle or via the manual Refresh button.
+    setChannelRefreshed(channelKey, new Date().toISOString());
+    refreshingChannels.delete(channelKey);
+  }
+}
+
+function channelResponse(channel, channelKey) {
+  const stored = listVideosByChannel(channelKey);
+  return {
+    ...channel,
+    videos: stored.filter((video) => !video.isShort),
+    shorts: stored.filter((video) => video.isShort),
+  };
+}
+
 app.get("/api/channels", async (req, res) => {
   const data = readJson(channelsPath, { channels: [] });
   const settings = readJson(settingsPath, { dailyLimitSeconds: 1800, timezone: "Europe/London" });
   const maxVideos = Math.max(1, Number(settings.maxVideosPerChannel || 200));
   const today = new Date().toISOString().slice(0, 10);
+  const manualRefresh = forceRefresh;
+  forceRefresh = false;
 
   const channels = await Promise.all(
     (data.channels || []).map(async (channel) => {
@@ -71,59 +135,31 @@ app.get("/api/channels", async (req, res) => {
 
       const refreshMeta = getChannelRefreshed(channelKey);
       const refreshedAt = refreshMeta ? refreshMeta.refreshedAt.slice(0, 10) : null;
-      const shouldRefresh = forceRefresh || refreshedAt !== today;
+      const neverRefreshed = !refreshMeta;
+      const isStale = refreshedAt !== today;
+      const hasData = listVideosByChannel(channelKey).length > 0;
 
-      if (apiKey && shouldRefresh) {
-        try {
-          const { videos, shorts, channelId } = await fetchChannelVideos(
-            { channelId: channel.youtubeChannelId, handle: channel.youtubeHandle },
-            apiKey,
-            maxVideos
-          );
-          const updatedAt = new Date().toISOString();
-          videos.forEach((video) =>
-            upsertVideo({
-              videoId: video.id,
-              channelKey,
-              channelId: channelId || channel.youtubeChannelId || null,
-              title: video.title || null,
-              publishedAt: video.publishedAt || null,
-              durationSeconds: video.durationSeconds || null,
-              isShort: 0,
-              updatedAt,
-            })
-          );
-          shorts.forEach((video) =>
-            upsertVideo({
-              videoId: video.id,
-              channelKey,
-              channelId: channelId || channel.youtubeChannelId || null,
-              title: video.title || null,
-              publishedAt: video.publishedAt || null,
-              durationSeconds: video.durationSeconds || null,
-              isShort: 1,
-              updatedAt,
-            })
-          );
-          setChannelRefreshed(channelKey, updatedAt);
-        } catch (error) {
-          const label = channel.youtubeHandle || channel.youtubeChannelId || channel.name;
-          console.error(`YouTube fetch failed for ${label}: ${error.message}`);
-        }
+      if (apiKey && manualRefresh) {
+        // Manual "Refresh" button: full re-scan now, return fresh data.
+        await refreshChannel(channel, channelKey, maxVideos, { incremental: false });
+      } else if (apiKey && neverRefreshed) {
+        // True first run on this machine (never fetched): full backfill,
+        // blocking, so the first page load comes back already populated. Runs
+        // once ever per channel — after this the channel always has a refresh
+        // stamp and only refreshes in the background.
+        await refreshChannel(channel, channelKey, maxVideos, { incremental: false });
+      } else if (apiKey && isStale && !refreshingChannels.has(channelKey)) {
+        // Daily top-up: refresh in the background so the load stays instant.
+        // Incremental when we already have videos (stop at the first known one);
+        // a full scan if the channel is somehow empty, to try to populate it.
+        refreshingChannels.add(channelKey);
+        refreshChannel(channel, channelKey, maxVideos, { incremental: hasData });
       }
 
-      const stored = listVideosByChannel(channelKey);
-      const videos = stored.filter((video) => !video.isShort);
-      const shorts = stored.filter((video) => video.isShort);
-      return {
-        ...channel,
-        videos,
-        shorts,
-      };
+      return channelResponse(channel, channelKey);
     })
   );
 
-  forceRefresh = false;
   res.json({ channels });
 });
 

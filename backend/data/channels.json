@@ -154,6 +154,13 @@
       "category": "pokemon",
       "youtubeHandle": "CybertronVGC",
       "videos": []
+    },
+    {
+      "id": "cleo-abram",
+      "name": "Cleo Abram",
+      "category": "science",
+      "youtubeHandle": "CleoAbram",
+      "videos": []
     }
   ]
 }
