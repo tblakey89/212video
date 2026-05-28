@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { enrichChannels, enrichPlaylists } from "../utils/enrich.js";
 
 export function useAppData(authFetch) {
   const [channels, setChannels] = useState([]);
@@ -19,7 +20,7 @@ export function useAppData(authFetch) {
 
       if (channelsRes.ok) {
         const channelsData = await channelsRes.json();
-        setChannels(channelsData.channels || []);
+        setChannels(enrichChannels(channelsData.channels || []));
       }
 
       if (settingsRes.ok) {
@@ -31,7 +32,7 @@ export function useAppData(authFetch) {
 
       if (playlistsRes.ok) {
         const playlistsData = await playlistsRes.json();
-        setPlaylists(playlistsData.playlists || []);
+        setPlaylists(enrichPlaylists(playlistsData.playlists || []));
       } else {
         setPlaylists([]);
       }

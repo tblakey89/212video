@@ -48,6 +48,7 @@ export function useYouTubePlayer({
         autoplay: 1,
         start: startSeconds || 0,
         fs: 0,
+        controls: 0,
         playsinline: 1,
         disablekb: 1,
         iv_load_policy: 3,

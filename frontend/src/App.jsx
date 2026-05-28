@@ -3,31 +3,29 @@ import AppShell from "./components/AppShell.jsx";
 import AppContent from "./components/AppContent.jsx";
 import { useAppData } from "./hooks/useAppData.js";
 import { useAuthFetch } from "./hooks/useAuthFetch.js";
-import { useChannelScroll } from "./hooks/useChannelScroll.js";
 import { useInfiniteScroll } from "./hooks/useInfiniteScroll.js";
 import { useVideoCollections } from "./hooks/useVideoCollections.js";
 import { useWatchReporter } from "./hooks/useWatchReporter.js";
 import { useWatchSummary } from "./hooks/useWatchSummary.js";
 import { useYouTubeApiReady } from "./hooks/useYouTubeApiReady.js";
 import { useYouTubePlayer } from "./hooks/useYouTubePlayer.js";
+import { selectLockout } from "./utils/lockout.js";
+import { collectionVideos } from "./utils/collection.js";
 
-const PREVIEW_VIDEOS_PER_CHANNEL = 10;
-const CHANNEL_PAGE_SIZE = 10;
+const HOME_PAGE_SIZE = 12;
+const DETAIL_PAGE_SIZE = 15;
 
 export default function App() {
   const authFetch = useAuthFetch();
   const apiReady = useYouTubeApiReady();
 
+  const [tab, setTab] = useState("home");
+  const [detail, setDetail] = useState(null);
   const [activeVideo, setActiveVideo] = useState(null);
   const [activeStartSeconds, setActiveStartSeconds] = useState(0);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [page, setPage] = useState("home");
-  const [view, setView] = useState("list");
-  const [selectedChannel, setSelectedChannel] = useState(null);
-  const [selectedPlaylist, setSelectedPlaylist] = useState(null);
-  const [playerOrigin, setPlayerOrigin] = useState({ page: "home", view: "list" });
-  const [videoFilter, setVideoFilter] = useState("full");
   const [homeFilter, setHomeFilter] = useState("full");
+  const [browseFilter, setBrowseFilter] = useState("full");
+  const [refreshing, setRefreshing] = useState(false);
   const [isPlayerPaused, setIsPlayerPaused] = useState(false);
   const [isEndingSoon, setIsEndingSoon] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
@@ -38,30 +36,8 @@ export default function App() {
   const watchedRef = useRef(0);
   const limitRef = useRef(0);
 
-  const {
-    channels,
-    playlists,
-    dailyLimitSeconds,
-    startHour,
-    endHour,
-    isLoading,
-    loadData,
-  } = useAppData(authFetch);
-
-  const {
-    watchedSeconds,
-    setWatchedSeconds,
-    videoProgress,
-    setVideoProgress,
-    refreshSummary,
-  } = useWatchSummary(authFetch);
-
-  const { visibleCount, sentinelRef } = useChannelScroll({
-    view,
-    selectedChannel,
-    filter: videoFilter,
-    pageSize: CHANNEL_PAGE_SIZE,
-  });
+  const { channels, playlists, dailyLimitSeconds, startHour, endHour, isLoading, loadData } = useAppData(authFetch);
+  const { watchedSeconds, setWatchedSeconds, videoProgress, setVideoProgress, refreshSummary } = useWatchSummary(authFetch);
 
   const { startReporting, stopReporting } = useWatchReporter({
     authFetch,
@@ -71,7 +47,6 @@ export default function App() {
     watchedRef,
     playerInstanceRef,
     onLimitReached: () => {
-      setStatusMessage("Time is up...");
       setIsTimeUp(true);
       setActiveVideo(null);
       setActiveStartSeconds(0);
@@ -79,39 +54,27 @@ export default function App() {
   });
 
   const remainingSeconds = Math.max(0, dailyLimitSeconds - watchedSeconds);
-  const isTooEarly = currentHour < startHour;
-  const isTooLate = currentHour >= endHour;
-
-  const { sortedChannels, homeItems, inProgressItems } = useVideoCollections({
-    channels,
-    homeFilter,
-    videoProgress,
-  });
-  const homeScroll = useInfiniteScroll({ itemsLength: homeItems.length, pageSize: 30 });
-  const playlistScroll = useInfiniteScroll({
-    itemsLength: selectedPlaylist ? (selectedPlaylist.videos || []).length : 0,
-    pageSize: 20,
-  });
   const disablePlayback = remainingSeconds <= 0;
-  const showTimeUp = isTimeUp || remainingSeconds <= 0;
-  const showTooEarly = isTooEarly && !showTimeUp;
-  const showTooLate = isTooLate && !showTimeUp && !showTooEarly;
+  const lockout = selectLockout({ remaining: remainingSeconds, currentHour, startHour, endHour, isTimeUp });
+
+  const { sortedChannels, homeItems, inProgressItems } = useVideoCollections({ channels, homeFilter, videoProgress });
+
+  const homeScroll = useInfiniteScroll({ itemsLength: homeItems.length, pageSize: HOME_PAGE_SIZE });
+  const detailItems = detail ? collectionVideos(detail, browseFilter) : [];
+  const detailScroll = useInfiniteScroll({ itemsLength: detailItems.length, pageSize: DETAIL_PAGE_SIZE });
+
+  useEffect(() => { watchedRef.current = watchedSeconds; }, [watchedSeconds]);
+  useEffect(() => { limitRef.current = dailyLimitSeconds; }, [dailyLimitSeconds]);
 
   useEffect(() => {
-    watchedRef.current = watchedSeconds;
-  }, [watchedSeconds]);
-
-  useEffect(() => {
-    limitRef.current = dailyLimitSeconds;
-  }, [dailyLimitSeconds]);
-
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setCurrentHour(new Date().getHours());
-    }, 30000);
-
+    const intervalId = setInterval(() => setCurrentHour(new Date().getHours()), 30000);
     return () => clearInterval(intervalId);
   }, []);
+
+  useEffect(() => {
+    const refreshId = setInterval(() => refreshSummary(), 30000);
+    return () => clearInterval(refreshId);
+  }, [refreshSummary]);
 
   useEffect(() => {
     // Block browser shortcuts that can escape the kiosk (F1 help, reload,
@@ -133,25 +96,14 @@ export default function App() {
     return () => window.removeEventListener("keydown", blockKeys, true);
   }, []);
 
-  useEffect(() => {
-    const refreshId = setInterval(() => {
-      refreshSummary();
-    }, 30000);
-
-    return () => clearInterval(refreshId);
-  }, [refreshSummary]);
-
   const handleEnd = useCallback(() => {
     stopReporting();
-    setStatusMessage("Nice one! Pick another video.");
     setActiveVideo(null);
     setActiveStartSeconds(0);
     setIsPlayerPaused(false);
     setIsEndingSoon(false);
     setIsTimeUp(false);
-    setPage(playerOrigin.page);
-    setView(playerOrigin.view);
-  }, [playerOrigin, stopReporting]);
+  }, [stopReporting]);
 
   const handlePlay = useCallback(() => {
     startReporting(activeVideo);
@@ -165,9 +117,7 @@ export default function App() {
     setIsPlayerPaused(true);
   }, [stopReporting]);
 
-  const handleNearEnd = useCallback(() => {
-    setIsEndingSoon(true);
-  }, []);
+  const handleNearEnd = useCallback(() => setIsEndingSoon(true), []);
 
   useYouTubePlayer({
     apiReady,
@@ -191,69 +141,38 @@ export default function App() {
     };
   }, [stopReporting]);
 
-  function startVideo(channel, video, originPage, originView) {
-    if (isTooEarly) {
-      setStatusMessage(`Too early. On at ${startHour}:00`);
-      return;
-    }
-    if (isTooLate) {
-      setStatusMessage(`Too late. Back at ${startHour}:00`);
-      return;
-    }
+  function openVideo(video) {
     if (remainingSeconds <= 0) {
-      setStatusMessage("Daily limit reached. Come back tomorrow.");
       setIsTimeUp(true);
       return;
     }
-
-    setStatusMessage("");
-    setIsTimeUp(false);
     const totalWatched = videoProgress[video.id] || 0;
     const resumeAt = totalWatched >= 5 ? Math.floor(totalWatched) : 0;
     setActiveStartSeconds(resumeAt);
-    setActiveVideo({
-      ...video,
-      channelId: channel.id,
-    });
-    setSelectedChannel(channel);
-    setPlayerOrigin({ page: originPage, view: originView });
-    setPage(originPage);
-    setView("player");
+    setActiveVideo(video);
   }
 
-  function handleViewChannel(channel) {
-    setSelectedChannel(channel);
-    setPage("channels");
-    setView("channel");
-  }
-
-  function handleViewPlaylist(playlist) {
-    setSelectedPlaylist(playlist);
-    setPage("playlists");
-    setView("playlist");
-  }
-
-  function handleBackFromPlayer() {
-    setPage(playerOrigin.page);
-    setView(playerOrigin.view);
-  }
-
-  function handlePageChange(nextPage) {
-    if (view === "player") {
-      stopReporting();
-      if (playerInstanceRef.current) {
-        playerInstanceRef.current.stopVideo();
-      }
-      setActiveVideo(null);
-      setActiveStartSeconds(0);
-      setIsPlayerPaused(false);
-      setIsEndingSoon(false);
-      setIsTimeUp(false);
+  function closePlayer() {
+    stopReporting();
+    if (playerInstanceRef.current) {
+      playerInstanceRef.current.stopVideo();
     }
-    setPage(nextPage);
-    setView("list");
-    setSelectedChannel(null);
-    setSelectedPlaylist(null);
+    setActiveVideo(null);
+    setActiveStartSeconds(0);
+    setIsPlayerPaused(false);
+    setIsEndingSoon(false);
+  }
+
+  function changeTab(nextTab) {
+    setTab(nextTab);
+    setDetail(null);
+  }
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await authFetch("/api/channels/refresh", { method: "POST" });
+    await loadData();
+    setRefreshing(false);
   }
 
   async function handleResetProgress(videoId) {
@@ -264,66 +183,48 @@ export default function App() {
   return (
     <AppShell>
       <AppContent
-        remainingMinutes={Math.ceil(remainingSeconds / 60)}
-        statusMessage={statusMessage}
-        showTimeUp={showTimeUp}
-        showTooEarly={showTooEarly}
-        showTooLate={showTooLate}
-        startHour={startHour}
-        endHour={endHour}
+        lockout={lockout}
+        settings={{ startHour, endHour }}
         isLoading={isLoading}
-        page={page}
-        view={view}
-        onPageChange={(_, value) => handlePageChange(value)}
+        tab={tab}
+        detail={detail}
+        onTabChange={changeTab}
+        onHome={() => changeTab("home")}
+        remaining={remainingSeconds}
+        total={dailyLimitSeconds}
         activeVideo={activeVideo}
         playerRef={playerRef}
-        onBackFromPlayer={handleBackFromPlayer}
-        onResumePlayer={() => playerInstanceRef.current?.playVideo()}
-        showPauseOverlay={isPlayerPaused}
-        showEndOverlay={isEndingSoon}
+        playerInstanceRef={playerInstanceRef}
+        isPlayerPaused={isPlayerPaused}
+        isEndingSoon={isEndingSoon}
+        onBackFromPlayer={closePlayer}
+        disablePlayback={disablePlayback}
+        videoProgress={videoProgress}
+        onSelectVideo={openVideo}
+        onResetProgress={handleResetProgress}
         homeProps={{
           inProgressItems,
           homeItems,
           homeFilter,
-          onFilterChange: (_, value) => setHomeFilter(value),
-          onSelectVideo: (channel, video) => startVideo(channel, video, "home", "list"),
-          onResetProgress: handleResetProgress,
-          disabled: disablePlayback,
-          videoProgress,
+          onFilterChange: setHomeFilter,
           visibleCount: homeScroll.visibleCount,
           sentinelRef: homeScroll.sentinelRef,
         }}
-        playlistsProps={{
-          selectedPlaylist,
-          playlists,
-          visibleCount: playlistScroll.visibleCount,
-          sentinelRef: playlistScroll.sentinelRef,
-          disabled: disablePlayback,
-          videoProgress,
-          onSelectPreview: (playlist, video) => startVideo(playlist, video, "playlists", "list"),
-          onSelectPlaylistVideo: (playlist, video) => startVideo(playlist, video, "playlists", "playlist"),
-          onSeeAll: handleViewPlaylist,
-          previewCount: PREVIEW_VIDEOS_PER_CHANNEL,
-          onBack: () => setView("list"),
-        }}
-        channelsProps={{
-          selectedChannel,
+        browseProps={{
           channels: sortedChannels,
-          filter: videoFilter,
-          onFilterChange: (_, value) => setVideoFilter(value),
-          onRefresh: async () => {
-            await authFetch("/api/channels/refresh", { method: "POST" });
-            loadData();
-          },
-          visibleCount,
-          sentinelRef,
-          disabled: disablePlayback,
-          videoProgress,
-          onSelectPreview: (channel, video) => startVideo(channel, video, "channels", "list"),
-          onSelectChannelVideo: (channel, video) => startVideo(channel, video, "channels", "channel"),
-          onSeeAll: handleViewChannel,
-          previewCount: PREVIEW_VIDEOS_PER_CHANNEL,
-          onBack: () => setView("list"),
+          playlists,
+          filter: browseFilter,
+          onFilterChange: setBrowseFilter,
+          onSeeAll: setDetail,
+          onRefresh: handleRefresh,
+          refreshing,
+        }}
+        detailProps={{
+          filter: browseFilter,
+          onFilterChange: setBrowseFilter,
+          onBack: () => setDetail(null),
+          visibleCount: detailScroll.visibleCount,
+          sentinelRef: detailScroll.sentinelRef,
         }}
       />
     </AppShell>

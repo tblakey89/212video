@@ -3,6 +3,7 @@
     {
       "id": "mark-rober",
       "name": "Mark Rober",
+      "category": "making",
       "youtubeChannelId": "UCY1kMZp36IQSyNx_9h4mpCg",
       "videos": [
         {
@@ -14,6 +15,7 @@
     {
       "id": "veritasium",
       "name": "Veritasium",
+      "category": "science",
       "youtubeChannelId": "UCHnyfMqiRRG1u-2MsSQLbXA",
       "videos": [
         {
@@ -25,6 +27,7 @@
     {
       "id": "adam-savage",
       "name": "Adam Savage's Tested",
+      "category": "making",
       "youtubeChannelId": "UCiDJtJKMICpb9B1qf7qjEOA",
       "videos": [
         {
@@ -36,102 +39,119 @@
     {
       "id": "scishow",
       "name": "SciShow",
+      "category": "science",
       "youtubeChannelId": "UCZYTClx2T1of7BRZ86-8fow",
       "videos": []
     },
     {
       "id": "scishow-kids",
       "name": "SciShow Kids",
+      "category": "science",
       "youtubeHandle": "SciShowKids",
       "videos": []
     },
     {
       "id": "13yoshi37",
       "name": "13yoshi37",
+      "category": "gaming",
       "youtubeHandle": "13yoshi37",
       "videos": []
     },
     {
       "id": "wolfeyvgc",
       "name": "WolfeyVGC",
+      "category": "pokemon",
       "youtubeHandle": "wolfeyvgc",
       "videos": []
     },
     {
       "id": "minuteearth",
       "name": "MinuteEarth",
+      "category": "science",
       "youtubeHandle": "minuteearth",
       "videos": []
     },
     {
       "id": "anna-cramling",
       "name": "Anna Cramling",
+      "category": "chess",
       "youtubeHandle": "AnnaCramling",
       "videos": []
     },
     {
       "id": "hanging-pawns",
       "name": "Hanging Pawns",
+      "category": "chess",
       "youtubeHandle": "HangingPawns",
       "videos": []
     },
     {
       "id": "chesskid",
       "name": "ChessKid",
+      "category": "chess",
       "youtubeHandle": "ChessKid",
       "videos": []
     },
     {
       "id": "gothamchess",
       "name": "GothamChess",
+      "category": "chess",
       "youtubeHandle": "GothamChess",
       "videos": []
     },
     {
       "id": "practical-engineering",
       "name": "Practical Engineering",
+      "category": "science",
       "youtubeHandle": "PracticalEngineeringChannel",
       "videos": []
     },
     {
       "id": "horrible-histories",
       "name": "Horrible Histories",
+      "category": "history",
       "youtubeHandle": "HorribleHistoriesOfficial",
       "videos": []
     },
     {
       "id": "armchair-historian",
       "name": "The Armchair Historian",
+      "category": "history",
       "youtubeHandle": "TheArmchairHistorian",
       "videos": []
     },
     {
       "id": "smarter-every-day",
       "name": "SmarterEveryDay",
+      "category": "science",
       "youtubeHandle": "smartereveryday",
       "videos": []
     },
     {
       "id": "scott-manley",
       "name": "Scott Manley",
+      "category": "science",
       "youtubeHandle": "scottmanley",
       "videos": []
     },
     {
       "id": "brick-experiment-channel",
       "name": "Brick Experiment Channel",
+      "category": "building",
       "youtubeHandle": "BrickExperimentChannel",
       "videos": []
     },
     {
       "id": "lego-technic-mastery",
       "name": "Lego Technic Mastery",
+      "category": "building",
       "youtubeHandle": "LegoTechnicMastery",
       "videos": []
     },
     {
       "id": "cybertronvgc",
       "name": "CybertronVGC",
+      "category": "pokemon",
       "youtubeHandle": "CybertronVGC",
       "videos": []
     }

@@ -1,157 +1,95 @@
 import React from "react";
-import { Box, CircularProgress, Divider, Typography } from "@mui/material";
-import ChannelsView from "./ChannelsView.jsx";
-import HeroHeader from "./HeroHeader.jsx";
+import { Box, CircularProgress } from "@mui/material";
+import Header from "./shell/Header.jsx";
 import HomeView from "./HomeView.jsx";
-import NavigationTabs from "./NavigationTabs.jsx";
+import BrowseScreen from "./BrowseScreen.jsx";
+import DetailPage from "./DetailPage.jsx";
 import PlayerView from "./PlayerView.jsx";
-import PlaylistsView from "./PlaylistsView.jsx";
+import Lockout from "./Lockout.jsx";
 
 export default function AppContent({
-  remainingMinutes,
-  statusMessage,
-  showTimeUp,
-  showTooEarly,
-  showTooLate,
-  startHour,
-  endHour,
+  lockout,
+  settings,
   isLoading,
-  page,
-  view,
-  onPageChange,
+  tab,
+  detail,
+  onTabChange,
+  onHome,
+  remaining,
+  total,
   activeVideo,
   playerRef,
+  playerInstanceRef,
+  isPlayerPaused,
+  isEndingSoon,
   onBackFromPlayer,
-  onResumePlayer,
-  showPauseOverlay,
-  showEndOverlay,
+  disablePlayback,
+  videoProgress,
+  onSelectVideo,
+  onResetProgress,
   homeProps,
-  playlistsProps,
-  channelsProps,
+  browseProps,
+  detailProps,
 }) {
-  if (showTimeUp) {
-    return (
-      <Box
-        sx={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#0e0d0c",
-          pointerEvents: "auto",
-        }}
-      >
-        <Typography
-          variant="h2"
-          sx={{
-            color: "#f6f0e6",
-            fontWeight: 800,
-            textAlign: "center",
-            fontSize: { xs: 40, md: 64 },
-          }}
-        >
-          Time is up...
-        </Typography>
-      </Box>
-    );
+  if (lockout) {
+    return <Lockout kind={lockout} settings={settings} />;
   }
 
-  if (showTooEarly) {
+  if (activeVideo) {
     return (
-      <Box
-        sx={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#0e0d0c",
-          pointerEvents: "auto",
-        }}
-      >
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h2"
-            sx={{
-              color: "#f6f0e6",
-              fontWeight: 800,
-              fontSize: { xs: 40, md: 64 },
-            }}
-          >
-            Too early...
-          </Typography>
-          <Typography sx={{ color: "rgba(246,240,230,0.75)", mt: 1 }}>
-            On at {startHour}:00
-          </Typography>
-        </Box>
-      </Box>
+      <PlayerView
+        video={activeVideo}
+        playerRef={playerRef}
+        playerInstanceRef={playerInstanceRef}
+        remaining={remaining}
+        total={total}
+        isPaused={isPlayerPaused}
+        isEndingSoon={isEndingSoon}
+        onBack={onBackFromPlayer}
+      />
     );
   }
-
-  if (showTooLate) {
-    return (
-      <Box
-        sx={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 10,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#0e0d0c",
-          pointerEvents: "auto",
-        }}
-      >
-        <Box sx={{ textAlign: "center" }}>
-          <Typography
-            variant="h2"
-            sx={{
-              color: "#f6f0e6",
-              fontWeight: 800,
-              fontSize: { xs: 40, md: 64 },
-            }}
-          >
-            Too late...
-          </Typography>
-          <Typography sx={{ color: "rgba(246,240,230,0.75)", mt: 1 }}>
-            Back at {startHour}:00
-          </Typography>
-        </Box>
-      </Box>
-    );
-  }
-
-  const showLoading = view !== "player" && isLoading;
 
   return (
-    <>
-      <HeroHeader remainingMinutes={remainingMinutes} statusMessage={statusMessage} />
-      <Divider sx={{ my: 3, borderColor: "rgba(27,27,31,0.12)" }} />
-      <NavigationTabs page={page} onChange={onPageChange} />
-      {showLoading && (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress />
-        </Box>
-      )}
-      {!showLoading && view === "player" ? (
-        <PlayerView
-          activeVideo={activeVideo}
-          onBack={onBackFromPlayer}
-          playerRef={playerRef}
-          onResume={onResumePlayer}
-          showPauseOverlay={showPauseOverlay}
-          showEndOverlay={showEndOverlay}
-        />
-      ) : !showLoading && page === "home" ? (
-        <HomeView {...homeProps} />
-      ) : !showLoading && page === "playlists" ? (
-        <PlaylistsView view={view} {...playlistsProps} />
-      ) : !showLoading ? (
-        <ChannelsView view={view} {...channelsProps} />
-      ) : null}
-    </>
+    <Box sx={{ minHeight: "100vh", background: "#FBF3E7" }}>
+      <Header tab={tab} setTab={onTabChange} remaining={remaining} total={total} onHome={onHome} />
+      <main style={{ maxWidth: 1640, margin: "0 auto", padding: "30px clamp(20px,4vw,64px) 90px" }}>
+        {isLoading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+            <CircularProgress />
+          </Box>
+        ) : detail ? (
+          <DetailPage
+            coll={detail}
+            videoProgress={videoProgress}
+            onSelect={onSelectVideo}
+            onReset={onResetProgress}
+            disabled={disablePlayback}
+            {...detailProps}
+          />
+        ) : tab === "home" ? (
+          <HomeView
+            videoProgress={videoProgress}
+            onSelectVideo={onSelectVideo}
+            onResetProgress={onResetProgress}
+            disabled={disablePlayback}
+            {...homeProps}
+          />
+        ) : (
+          <BrowseScreen
+            kind={tab}
+            collections={tab === "channels" ? browseProps.channels : browseProps.playlists}
+            videoProgress={videoProgress}
+            onSelect={onSelectVideo}
+            disabled={disablePlayback}
+            filter={browseProps.filter}
+            onFilterChange={browseProps.onFilterChange}
+            onSeeAll={browseProps.onSeeAll}
+            onRefresh={browseProps.onRefresh}
+            refreshing={browseProps.refreshing}
+          />
+        )}
+      </main>
+    </Box>
   );
 }

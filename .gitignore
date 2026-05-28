@@ -5,3 +5,12 @@ frontend/dist/
 backend/data/watch.sqlite
 .env
 backend/.env
+
+# OS cruft
+.DS_Store
+
+# Design handoff scratch (reference prototype from Claude design)
+design_handoff_212_ui/
+DESIGN_HANDOVER.md
+212 Video.zip
+212 _standalone_.html

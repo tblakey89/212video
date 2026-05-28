@@ -3,21 +3,25 @@
     {
       "id": "gotham-chess-guide",
       "name": "Gotham Chess Guide",
+      "category": "chess",
       "youtubePlaylistId": "PLBRObSmbZluRBQOO_6FzyxQUaFyzusSl0"
     },
     {
       "id": "gotham-chess-openings",
       "name": "Gotham Chess Openings",
+      "category": "chess",
       "youtubePlaylistId": "PLBRObSmbZluTpMdP-rUL3bQ5GA8v4dMbT"
     },
     {
       "id": "chess-tips",
       "name": "Chess Tips",
+      "category": "chess",
       "youtubePlaylistId": "PLBRObSmbZluSEeBkH17c72MaM4nFjqoi8"
     },
     {
       "id": "pokemon-academy",
       "name": "Pokemon academy",
+      "category": "pokemon",
       "youtubePlaylistId": "PLb_5fF_O3FviC-jM32a72uQXfqWXTr-8i"
     }
   ]
